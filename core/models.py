@@ -6,6 +6,14 @@ class Category(models.Model):
     slug = models.SlugField(unique=True)
     is_active = models.BooleanField(default=True)
 
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
