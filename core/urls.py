@@ -7,11 +7,13 @@ from .views import (
     ProtectedAPIView,
     ReservationCreateAPIView,
     UserReservationListAPIView,
-    AdminReservationListAPIView,  # 🔥 AJOUTÉ
+    AdminReservationListAPIView,
+    AdminReservationUpdateStatusAPIView,  # 🔥 AJOUTÉ
 )
 
 urlpatterns = [
     path("categories/", CategoryListAPIView.as_view(), name="category-list"),
+
     path("resources/", ResourceListAPIView.as_view(), name="resource-list"),
     path("resources/<int:pk>/", ResourceDetailAPIView.as_view(), name="resource-detail"),
 
@@ -26,4 +28,11 @@ urlpatterns = [
 
     # 🛠️ Admin - toutes les réservations
     path("admin-reservations/", AdminReservationListAPIView.as_view(), name="admin-reservations"),
+
+    # 🛠️ Admin - modifier le status
+    path(
+        "admin-reservations/<int:pk>/update-status/",
+        AdminReservationUpdateStatusAPIView.as_view(),
+        name="admin-reservation-update-status",
+    ),
 ]

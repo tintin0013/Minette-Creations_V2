@@ -106,13 +106,21 @@ class ResourceSerializer(serializers.ModelSerializer):
 # =======================
 
 class ReservationSerializer(serializers.ModelSerializer):
+
+    # 🔥 Pour création (on garde les IDs)
     selected_options = serializers.PrimaryKeyRelatedField(
         queryset=ResourceOptionValue.objects.all(),
         many=True,
         required=False
     )
 
-    # 🔥 Infos lisibles pour admin
+    # 🔥 Pour affichage lisible
+    selected_options_details = ResourceOptionValueSerializer(
+        source="selected_options",
+        many=True,
+        read_only=True
+    )
+
     resource_name = serializers.CharField(source="resource.name", read_only=True)
     user_email = serializers.SerializerMethodField()
     user_first_name = serializers.SerializerMethodField()
@@ -129,7 +137,8 @@ class ReservationSerializer(serializers.ModelSerializer):
             "user_email",
             "user_first_name",
             "user_last_name",
-            "selected_options",
+            "selected_options",          # pour POST
+            "selected_options_details",  # pour affichage
             "status",
             "created_at",
         )

@@ -2,7 +2,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, NotFound
 
 from .models import Category, Resource, Reservation, UserProfile
 from .serializers import (
@@ -58,7 +58,6 @@ class ReservationCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         clerk_user_id = self.request.user.id
 
-        # Création automatique du profil si inexistant
         UserProfile.objects.get_or_create(
             clerk_user_id=clerk_user_id
         )
@@ -100,6 +99,44 @@ class AdminReservationListAPIView(generics.ListAPIView):
             raise PermissionDenied("Admin access required.")
 
         return Reservation.objects.all()
+
+
+# =======================
+# ADMIN RESERVATION STATUS UPDATE
+# =======================
+
+class AdminReservationUpdateStatusAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        profile, created = UserProfile.objects.get_or_create(
+            clerk_user_id=request.user.id
+        )
+
+        if not profile.is_admin:
+            raise PermissionDenied("Admin access required.")
+
+        try:
+            reservation = Reservation.objects.get(pk=pk)
+        except Reservation.DoesNotExist:
+            raise NotFound("Reservation not found.")
+
+        new_status = request.data.get("status")
+
+        if new_status not in ["pending", "confirmed", "cancelled"]:
+            return Response(
+                {"error": "Invalid status value."},
+                status=400
+            )
+
+        reservation.status = new_status
+        reservation.save()
+
+        return Response({
+            "message": "Status updated successfully.",
+            "reservation_id": reservation.id,
+            "new_status": reservation.status
+        })
 
 
 # =======================
